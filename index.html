@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b16">
+<title>DS TaskHub | Digital Workspace</title>
+
+<style>
+:root {
+  --bg:#080b16;
+  --panel:#101629;
+  --panel2:#151e34;
+  --border:#27314b;
+  --text:#edf3ff;
+  --muted:#94a3bd;
+  --blue:#60a5fa;
+  --purple:#a78bfa;
+  --cyan:#67e8f9;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+body{
+  margin:0;background:
+  radial-gradient(ellipse at 10% 0%,#1b2b51 0,transparent 38%),
+  radial-gradient(ellipse at 100% 25%,#291743 0,transparent 34%),
+  var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--cyan);outline-offset:3px
+}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:245px;flex-shrink:0;padding:25px 16px;
+  background:#080c19ed;border-right:1px solid var(--border);
+  display:flex;flex-direction:column;gap:24px
+}
+.brand{display:flex;align-items:center;gap:12px;padding:4px 7px 20px}
+.logo{
+  width:43px;height:43px;display:grid;place-items:center;
+  border-radius:14px;font-weight:900;font-size:19px;
+  background:linear-gradient(135deg,#478bff,#a855f7);
+  box-shadow:0 0 28px #637eff45
+}
+.brand strong{font-size:17px}
+.brand small{display:block;color:var(--muted);font-size:10px;margin-top:5px;letter-spacing:1px}
+.nav-label{font-size:10px;color:#74819f;letter-spacing:2px;padding:0 12px;text-transform:uppercase}
+.nav{display:grid;gap:7px}
+.nav button{
+  padding:13px 12px;text-align:left;color:#aab7d0;
+  background:transparent;border:1px solid transparent;border-radius:11px
+}
+.nav button span{display:inline-block;width:30px}
+.nav button:hover,.nav button.active{
+  color:white;background:linear-gradient(90deg,#283c66aa,#29224988);
+  border-color:#748bff38
+}
+.sidebar-bottom{
+  margin-top:auto;border:1px solid var(--border);background:var(--panel);
+  border-radius:14px;padding:16px;color:var(--muted);font-size:12px;line-height:1.8
+}
+.sidebar-bottom strong{color:var(--cyan)}
+.main{flex:1;min-width:0;padding:28px clamp(15px,3vw,38px)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:30px}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+h1{font-size:clamp(26px,3vw,37px);letter-spacing:-1px;margin:10px 0}
+.subtitle{font-size:14px;line-height:1.7;color:var(--muted)}
+.status{font-size:11px;color:#6ee7b7;border:1px solid #34d39955;background:#10b98112;border-radius:30px;padding:9px 12px;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.card,.panel{
+  min-width:0;background:linear-gradient(145deg,#151e33ed,#0e1526ed);
+  border:1px solid var(--border);border-radius:17px;
+  box-shadow:0 12px 35px #00000015
+}
+.card{padding:20px}
+.card h2{font-size:14px;margin:15px 0 8px}
+.card p{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+.icon{
+  display:grid;place-items:center;width:37px;height:37px;
+  background:#243354;border-radius:11px;font-size:18px
+}
+.stat{font-size:29px;font-weight:750;margin-top:15px}
+.blue{color:var(--blue)}.purple{color:var(--purple)}.cyan{color:var(--cyan)}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:30px 0 14px}
+.section-title h2{font-size:18px;margin:0}
+.tag{font-size:10px;letter-spacing:1px;color:var(--muted)}
+.workspace{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:15px}
+.panel{overflow:hidden}
+.panel-head{padding:17px 19px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel-head h2{font-size:14px;margin:0}
+.panel-body{padding:18px}
+.btn{
+  color:var(--text);background:#1b2742;border:1px solid var(--border);
+  border-radius:10px;padding:10px 13px;font-size:12px
+}
+.btn:hover{filter:brightness(1.2)}
+.primary{background:linear-gradient(110deg,#477bff,#8656ef);border-color:transparent;color:white;font-weight:650}
+.full{width:100%}
+.task-row{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}
+.task-row:last-child{border-bottom:0}
+.task-row input{width:17px;height:17px;accent-color:#818cf8;flex-shrink:0}
+.task-copy{flex:1;min-width:0}
+.task-copy strong{font-size:13px;display:block;overflow-wrap:anywhere}
+.task-copy small{font-size:11px;color:var(--muted);display:block;margin-top:5px}
+.task-row.done .task-copy strong{text-decoration:line-through;color:#8190ab}
+.delete-task{background:none;border:0;color:#fca5a5;font-size:17px}
+.field{
+  width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;
+  background:#0a1020;color:var(--text);outline:none;font-size:13px
+}
+.field:focus{border-color:#7d9aff}
+.form-row{display:flex;gap:8px;margin-bottom:12px}
+.form-row .field{min-width:0;flex:1}
+.upload-zone{
+  display:block;border:1px dashed #6687cf88;background:#18213a66;
+  border-radius:13px;padding:24px 14px;text-align:center;cursor:pointer
+}
+.upload-zone:hover{border-color:var(--cyan);background:#1c2b4b77}
+.upload-icon{font-size:27px;margin-bottom:9px}
+.upload-zone strong{display:block;font-size:13px}
+.upload-zone p{font-size:12px;color:var(--muted);line-height:1.7;margin:7px 0 0}
+#fileInput{display:none}
+.file-list{display:grid;gap:8px;margin-top:13px}
+.file-item{display:flex;align-items:center;gap:9px;padding:10px;background:#192238;border-radius:9px;font-size:12px}
+.file-item .filename{flex:1;min-width:0;overflow-wrap:anywhere}
+.file-item button{background:none;border:0;color:#fca5a5}
+.music{
+  margin-top:17px;border:1px solid #9b7aff3d;
+  background:linear-gradient(110deg,#251b42,#11182c);
+  border-radius:13px;padding:15px
+}
+.music h3{font-size:13px;margin:0 0 7px}
+.music p{font-size:12px;color:var(--muted);line-height:1.6}
+.music .field{margin:8px 0}
+.progress-track{height:5px;background:#27314b;border-radius:10px;overflow:hidden;margin-top:12px}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#60a5fa,#a78bfa);transition:width .2s}
+.empty{font-size:12px;color:var(--muted);text-align:center;padding:18px 4px}
+.note{font-size:11px;line-height:1.7;color:var(--muted);margin-top:12px}
+.footer{text-align:center;color:#65718c;font-size:11px;margin:28px 0 5px}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);
+  padding:12px 17px;background:#1c2944;border:1px solid #52658b;
+  border-radius:12px;font-size:12px;opacity:0;pointer-events:none;transition:.25s;
+  z-index:10;max-width:90%;text-align:center
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:950px){
+ .sidebar{width:205px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .workspace{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+ .app{display:block}.sidebar{width:auto;padding:12px;gap:12px;border-right:0;border-bottom:1px solid var(--border)}
+ .brand{padding:0 5px 7px}.nav-label,.sidebar-bottom{display:none}
+ .nav{display:flex;overflow-x:auto}.nav button{white-space:nowrap;padding:10px;font-size:12px}
+ .nav button span{width:auto;margin-right:5px}.main{padding:20px 13px}
+ .topbar{align-items:flex-start}.status{font-size:9px;padding:7px}
+ .grid{grid-template-columns:1fr}.card{padding:16px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <div class="logo">DS</div>
+    <div><strong>TaskHub<span class="purple">.</span></strong><small>DATA WORKSPACE</small></div>
+  </div>
+
+  <div class="nav-label">Workspace</div>
+  <nav class="nav">
+    <button class="active" data-target="dashboard"><span>◈</span>Dashboard</button>
+    <button data-target="tasks"><span>☷</span>My Tasks</button>
+    <button data-target="files"><span>▧</span>File Studio</button>
+    <button data-target="music"><span>♫</span>Music</button>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <strong>✦ YOUR NEXT LEVEL</strong><br>
+    Learn. Build. Analyse.<br>
+    One project at a time.
+  </div>
+</aside>
+
+<main class="main" id="dashboard">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Personal command centre</div>
+      <h1>Build something <span class="blue">brilliant.</span></h1>
+      <div class="subtitle">Your tasks, files and favourite music in one workspace.</div>
+    </div>
+    <div class="status">● System ready</div>
+  </header>
+
+  <section class="grid">
+    <div class="card">
+      <div class="icon">◈</div>
+      <div class="stat blue" id="taskCount">0/0</div>
+      <h2>Tasks completed</h2>
+      <p>Every small step moves you forward.</p>
+      <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+    </div>
+    <div class="card">
+      <div class="icon">▧</div>
+      <div class="stat purple" id="fileCount">0</div>
+      <h2>Files selected</h2>
+      <p>Keep track of the files in your current session.</p>
+    </div>
+    <div class="card">
+      <div class="icon">ϟ</div>
+      <div class="stat cyan" id="streakCount">01</div>
+      <h2>Start your streak</h2>
+      <p>Make progress today, then come back tomorrow.</p>
+    </div>
+  </section>
+
+  <div class="section-title" id="tasks">
+    <h2>My workflow</h2><span class="tag">PERSONAL PRODUCTIVITY</span>
+  </div>
+
+  <section class="workspace">
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Today's tasks</h2>
+        <button class="btn primary" id="addTask">+ Add task</button>
+      </div>
+      <div class="panel-body">
+        <form id="taskForm" class="form-row">
+          <input class="field" id="taskInput" maxlength="100" placeholder="Add a new task..." required>
+          <button class="btn" type="submit">Add</button>
+        </form>
+        <div id="taskList"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="files">
+      <div class="panel-head">
+        <h2>File Studio</h2><span class="tag">LOCAL SESSION</span>
+      </div>
+      <div class="panel-body">
+        <label class="upload-zone" for="fileInput">
+          <div class="upload-icon">⇧</div>
+          <strong>Select files for your workspace</strong>
+          <p>Click to browse your device.<br>Choose documents, images, code or datasets.</p>
+        </label>
+        <input id="fileInput" type="file" multiple>
+        <div class="file-list" id="fileList">
+          <div class="empty">Your selected files will appear here.</div>
+        </div>
+        <p class="note">Files stay on your device. This tool does not upload or analyse their contents.</p>
+
+        <div class="music" id="music">
+          <h3>♫ YouTube Music</h3>
+          <p>Search for music and open it directly on YouTube Music.</p>
+          <input class="field" id="musicQuery" placeholder="Song, artist or playlist">
+          <button class="btn primary full" id="musicButton" type="button">Search music ↗️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-title">
+    <h2>Quick tools</h2><span class="tag">BUILT-IN UTILITIES</span>
+  </div>
+
+  <section class="grid">
+    <div class="card">
+      <div class="icon">⌘</div>
+      <h2>Focus timer</h2>
+      <p>Use a 25-minute focus session for coding or studying.</p>
+      <div class="stat cyan" id="timerDisplay">25:00</div>
+      <div class="form-row" style="margin-top:12px">
+        <button class="btn primary" id="timerStart">Start</button>
+        <button class="btn" id="timerReset">Reset</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="icon">✎</div>
+      <h2>Quick notes</h2>
+      <p>Write down an idea before you forget it.</p>
+      <textarea id="notes" class="field" rows="4" placeholder="Your notes..."></textarea>
+      <button class="btn full" id="saveNotes" style="margin-top:10px">Save notes on this device</button>
+    </div>
+    <div class="card">
+      <div class="icon">↗️</div>
+      <h2>Useful links</h2>
+      <p>Jump straight into your learning tools.</p>
+      <button class="btn full" style="margin-top:12px" onclick="openLink('https://github.com')">GitHub ↗️</button>
+      <button class="btn full" style="margin-top:8px" onclick="openLink('https://colab.research.google.com')">Google Colab ↗️</button>
+      <button class="btn full" style="margin-top:8px" onclick="openLink('https://www.kaggle.com')">Kaggle ↗️</button>
+    </div>
+  </section>
+
+  <footer class="footer">DS TASKHUB · YOUR IDEAS, YOUR WORKSPACE · BUILT FOR LEARNING</footer>
+</main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function notify(message) {
+  const toast = $("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+  clearTimeout(notify.timeout);
+  notify.timeout = setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+function openLink(url) {
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
+// Navigation
+document.querySelectorAll(".nav button").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    button.classList.add("active");
+    $(button.dataset.target)?.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+
+// Task manager
+let tasks = [
+  {id:1,title:"Practise Python",done:false},
+  {id:2,title:"Review college notes",done:false},
+  {id:3,title:"Build a small data project",done:false}
+];
+let nextTaskId = 4;
+
+function renderTasks() {
+  const list = $("taskList");
+  list.replaceChildren();
+
+  if (!tasks.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No tasks yet. Add your first task above!";
+    list.appendChild(empty);
+  }
+
+  tasks.forEach(task => {
+    const row = document.createElement("div");
+    row.className = "task-row" + (task.done ? " done" : "");
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = task.done;
+    check.setAttribute("aria-label", "Mark " + task.title + " complete");
+    check.addEventListener("change", () => {
+      task.done = check.checked;
+      renderTasks();
+    });
+
+    const copy = document.createElement("div");
+    copy.className = "task-copy";
+    const title = document.createElement("strong");
+    title.textContent = task.title;
+    const sub = document.createElement("small");
+    sub.textContent = task.done ? "Completed ✓" : "In progress";
+    copy.append(title, sub);
+
+    const del = document.createElement("button");
+    del.className = "delete-task";
+    del.type = "button";
+    del.textContent = "×";
+    del.title = "Delete task";
+    del.setAttribute("aria-label", "Delete " + task.title);
+    del.addEventListener("click", () => {
+      tasks = tasks.filter(t => t.id !== task.id);
+      renderTasks();
+    });
+
+    row.append(check, copy, del);
+    list.appendChild(row);
+  });
+
+  const completed = tasks.filter(t => t.done).length;
+  $("taskCount").textContent = completed + "/" + tasks.length;
+  $("progressBar").style.width = (tasks.length ? completed / tasks.length * 100 : 0) + "%";
+}
+
+$("taskForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const title = $("taskInput").value.trim();
+  if (!title) return;
+  tasks.push({id:nextTaskId++,title,done:false});
+  $("taskInput").value = "";
+  renderTasks();
+  notify("Task added successfully.");
+});
+$("addTask").addEventListener("click", () => {
+  $("taskInput").focus();
+  $("tasks").scrollIntoView({behavior:"smooth"});
+});
+renderTasks();
+
+// File selector: previews filenames only
+const selectedFiles = [];
+$("fileInput").addEventListener("change", event => {
+  for (const file of event.target.files) {
+    selectedFiles.push(file);
+  }
+  renderFiles();
+  event.target.value = "";
+});
+
+function formatSize(size) {
+  if (size < 1024) return size + " B";
+  if (size < 1024*1024) return (size/1024).toFixed(1) + " KB";
+  return (size/1024/1024).toFixed(1) + " MB";
+}
+
+function renderFiles() {
+  const list = $("fileList");
+  list.replaceChildren();
+  $("fileCount").textContent = selectedFiles.length;
+
+  if (!selectedFiles.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "Your selected files will appear here.";
+    list.appendChild(empty);
+    return;
+  }
+
+  selectedFiles.forEach((file,index) => {
+    const row = document.createElement("div");
+    row.className = "file-item";
+
+    const icon = document.createElement("span");
+    icon.textContent = "▤";
+    const name = document.createElement("span");
+    name.className = "filename";
+    name.textContent = file.name + " · " + formatSize(file.size);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => {
+      selectedFiles.splice(index,1);
+      renderFiles();
+    });
+
+    row.append(icon,name,remove);
+    list.appendChild(row);
+  });
+}
+
+// YouTube Music search
+function searchMusic() {
+  const query = $("musicQuery").value.trim() || "focus music";
+  openLink("https://music.youtube.com/search?q=" + encodeURIComponent(query));
+}
+$("musicButton").addEventListener("click",searchMusic);
+$("musicQuery").addEventListener("keydown",event => {
+  if (event.key === "Enter") searchMusic();
+});
+
+// Focus timer: uses a one-second interval only while running
+let remaining = 25 * 60;
+let timerInterval = null;
+
+function showTimer() {
+  const minutes = Math.floor(remaining / 60).toString().padStart(2,"0");
+  const seconds = (remaining % 60).toString().padStart(2,"0");
+  $("timerDisplay").textContent = minutes + ":" + seconds;
+}
+
+$("timerStart").addEventListener("click",() => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    $("timerStart").textContent = "Resume";
+    return;
+  }
+
+  if (remaining <= 0) remaining = 25 * 60;
+  $("timerStart").textContent = "Pause";
+  timerInterval = setInterval(() => {
+    remaining--;
+    showTimer();
+
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      $("timerStart").textContent = "Start";
+      notify("Focus session complete. Take a short break!");
+    }
+  },1000);
+});
+
+$("timerReset").addEventListener("click",() => {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  remaining = 25 * 60;
+  $("timerStart").textContent = "Start";
+  showTimer();
+});
+showTimer();
+
+// Notes saved locally on this browser
+try {
+  $("notes").value = localStorage.getItem("dsTaskHubNotes") || "";
+} catch (error) {}
+
+$("saveNotes").addEventListener("click",() => {
+  try {
+    localStorage.setItem("dsTaskHubNotes",$("notes").value);
+    notify("Notes saved on this device.");
+  } catch (error) {
+    notify("Your browser couldn't save the notes.");
+  }
+});
+</script>
+</body>
+</html>
